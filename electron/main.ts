@@ -52,10 +52,11 @@ function createWindow() {
   // Em produção: tenta carregar arquivo local com fallbacks
   if (isDev) {
     // Desenvolvimento: conecta ao servidor Vite local
+    console.log("[Electron] ⚙️  Modo DESENVOLVIMENTO");
     mainWindow.loadURL("http://localhost:5173");
-    console.log("[Electron] Modo desenvolvimento - carregando http://localhost:5173");
   } else {
     // Produção: tenta carregar arquivo HTML local com múltiplos caminhos
+    console.log("[Electron] 🏭 Modo PRODUÇÃO");
     const possiblePaths = [
       path.join(__dirname, "../public/index.html"),      // dist/public/index.html
       path.join(__dirname, "../index.html"),             // dist/index.html
@@ -67,10 +68,12 @@ function createWindow() {
     for (const filePath of possiblePaths) {
       try {
         if (fs.existsSync(filePath)) {
-          console.log("[Electron] Arquivo encontrado:", filePath);
+          console.log("[Electron] ✅ Arquivo encontrado:", filePath);
           mainWindow.loadFile(filePath);
           loaded = true;
           break;
+        } else {
+          console.log("[Electron] ❌ Não encontrado:", filePath);
         }
       } catch (error) {
         console.error("[Electron] Erro ao verificar", filePath, ":", error);
@@ -79,23 +82,24 @@ function createWindow() {
 
     // Se nenhum arquivo foi encontrado, tenta a URL online como fallback
     if (!loaded) {
-      console.warn("[Electron] Arquivo HTML não encontrado, tentando URL online...");
+      console.warn("[Electron] ⚠️  Arquivo HTML não encontrado, tentando URL online...");
       mainWindow.loadURL("https://gymcrm-nbedknkp.manus.space");
     }
   }
 
-  // Abre DevTools em desenvolvimento para debug
-  if (isDev) {
-    mainWindow.webContents.openDevTools();
-  } else {
-    // Em produção, desabilita DevTools por segurança
-    mainWindow.webContents.closeDevTools();
-  }
+  // Abre DevTools para debug (sempre, temporariamente)
+  mainWindow.webContents.openDevTools();
+  console.log("[Electron] DevTools aberto para debug");
 
   // Log de debug
-  console.log("[Electron] isDev:", isDev);
-  console.log("[Electron] __dirname:", __dirname);
-  console.log("[Electron] Caminhos tentados:");
+  console.log("\n========================================");
+  console.log("[Electron] DEBUG INFO");
+  console.log("========================================");
+  console.log("isDev:", isDev);
+  console.log("__dirname:", __dirname);
+  console.log("process.cwd():", process.cwd());
+  console.log("process.env.NODE_ENV:", process.env.NODE_ENV);
+  console.log("\nCaminhos tentados:");
   if (!isDev) {
     const possiblePaths = [
       path.join(__dirname, "../public/index.html"),
@@ -103,8 +107,12 @@ function createWindow() {
       path.join(__dirname, "../../public/index.html"),
       path.join(__dirname, "../../index.html"),
     ];
-    possiblePaths.forEach(p => console.log("  -", p, fs.existsSync(p) ? "[EXISTS]" : "[NÃO EXISTE]"));
+    possiblePaths.forEach(p => {
+      const exists = fs.existsSync(p);
+      console.log("  -", p, exists ? "[EXISTS]" : "[NÃO EXISTE]");
+    });
   }
+  console.log("========================================\n");
 
   // Evento: quando a janela é fechada
   mainWindow.on("closed", () => {
@@ -113,7 +121,8 @@ function createWindow() {
 
   // Evento: quando há erro de carregamento
   mainWindow.webContents.on("did-fail-load", (event, errorCode, errorDescription) => {
-    console.error("[Electron] Erro ao carregar página:", errorCode, errorDescription);
+    console.error("[Electron] ERRO ao carregar página:", errorCode, errorDescription);
+    console.error("[Electron] Detalhes do erro:", event);
     // Tenta fallback para URL online
     if (!isDev) {
       console.log("[Electron] Tentando fallback para URL online...");
@@ -121,9 +130,25 @@ function createWindow() {
     }
   });
 
+  // Evento: erros de console no renderer
+  mainWindow.webContents.on("console-message", (level, message, line, sourceId) => {
+    console.log(`[Renderer] [${level}] ${message} (${sourceId}:${line})`);
+  });
+
+  // Evento: crashes
+  mainWindow.webContents.on("crashed", () => {
+    console.error("[Electron] RENDERER PROCESS CRASHED!");
+  });
+
   // Evento: quando a página carrega com sucesso
   mainWindow.webContents.on("did-finish-load", () => {
-    console.log("[Electron] Página carregada com sucesso!");
+    console.log("[Electron] ✅ Página carregada com sucesso!");
+    console.log("[Electron] URL atual:", mainWindow?.webContents.getURL());
+  });
+
+  // Evento: antes de carregar
+  mainWindow.webContents.on("will-navigate", (event, url) => {
+    console.log("[Electron] Navegando para:", url);
   });
 }
 

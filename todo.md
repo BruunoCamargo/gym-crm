@@ -51,3 +51,4 @@
 - [x] Criar ícone do aplicativo (PNG 1024x1024)
 - [x] Criar documentação de build (ELECTRON_BUILD.md)
 - [x] Configurar scripts de build no package.json
+- [x] Criar guia completo de uso (GUIA_COMPLETO.md e PDF)

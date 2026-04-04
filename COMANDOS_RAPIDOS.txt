@@ -1,0 +1,109 @@
+═══════════════════════════════════════════════════════════════
+  GYM CRM - COMANDOS RÁPIDOS PARA WINDOWS 10
+═══════════════════════════════════════════════════════════════
+
+APÓS A INSTALAÇÃO DO VISUAL STUDIO BUILD TOOLS, SIGA ESTES PASSOS:
+
+═══════════════════════════════════════════════════════════════
+PASSO 1: ABRIR O POWERSHELL (COMO ADMINISTRADOR)
+═══════════════════════════════════════════════════════════════
+
+1. Pressione: Windows + R
+2. Digite: powershell
+3. Pressione: Ctrl + Shift + Enter (para abrir como admin)
+
+
+═══════════════════════════════════════════════════════════════
+PASSO 2: NAVEGAR ATÉ A PASTA DO PROJETO
+═══════════════════════════════════════════════════════════════
+
+COPIE E COLE ESTE COMANDO:
+
+cd C:\Users\SEU_USUARIO\Downloads\gym-crm
+
+(Substitua "SEU_USUARIO" pelo seu nome de usuário do Windows)
+
+OU, se salvou em outro lugar:
+
+cd C:\caminho\completo\para\gym-crm
+
+
+═══════════════════════════════════════════════════════════════
+PASSO 3: INSTALAR DEPENDÊNCIAS (PRIMEIRA VEZ APENAS)
+═══════════════════════════════════════════════════════════════
+
+COPIE E COLE ESTE COMANDO:
+
+pnpm install
+
+(Isso vai levar 2-5 minutos)
+
+
+═══════════════════════════════════════════════════════════════
+PASSO 4: COMPILAR PARA WINDOWS
+═══════════════════════════════════════════════════════════════
+
+COPIE E COLE ESTE COMANDO:
+
+pnpm electron:build:win
+
+(Isso vai levar 10-20 minutos na primeira vez)
+
+
+═══════════════════════════════════════════════════════════════
+PASSO 5: ENCONTRAR OS ARQUIVOS .EXE
+═══════════════════════════════════════════════════════════════
+
+Após a compilação terminar, os arquivos estarão em:
+
+C:\caminho\para\gym-crm\dist\installers\
+
+Procure por:
+  ✓ Gym CRM Setup 1.0.0.exe (instalador - recomendado)
+  ✓ Gym CRM 1.0.0.exe (portátil - sem instalação)
+
+
+═══════════════════════════════════════════════════════════════
+DICAS IMPORTANTES
+═══════════════════════════════════════════════════════════════
+
+✓ Mantenha a janela do PowerShell aberta durante a compilação
+✓ Não desligue o computador durante o build
+✓ Se der erro, tente novamente ou reinicie o PC
+✓ Primeira compilação é mais lenta (próximas são rápidas)
+✓ Você só precisa fazer isso UMA VEZ
+
+
+═══════════════════════════════════════════════════════════════
+PRÓXIMAS COMPILAÇÕES (MAIS RÁPIDAS)
+═══════════════════════════════════════════════════════════════
+
+Se você modificar o código e quiser recompilar:
+
+pnpm electron:build:win
+
+(Próximas vezes levam apenas 3-5 minutos)
+
+
+═══════════════════════════════════════════════════════════════
+PRECISA DE AJUDA?
+═══════════════════════════════════════════════════════════════
+
+Se der erro:
+1. Feche a janela do PowerShell
+2. Abra uma nova (Admin)
+3. Tente novamente
+
+Se ainda não funcionar:
+1. Reinicie o computador
+2. Tente novamente
+
+Se continuar com erro:
+- Verifique se tem 5 GB de espaço em disco
+- Verifique se tem conexão com internet
+- Verifique se o Visual Studio Build Tools foi instalado
+
+
+═══════════════════════════════════════════════════════════════
+BOA SORTE! 🚀
+═══════════════════════════════════════════════════════════════

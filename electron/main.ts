@@ -38,10 +38,10 @@ function createWindow() {
       // Segurança: ativa context isolation
       contextIsolation: true,
       // Permite comunicação segura via preload script
-      preload: path.join(__dirname, "preload.ts"),
+      preload: path.join(__dirname, "preload.js"),
     },
     // Ícone do aplicativo (será criado depois)
-    icon: path.join(__dirname, "../assets/icon.png"),
+    icon: path.join(__dirname, "../assets/icon.png") || undefined,
   });
 
   // URL da aplicação
@@ -49,7 +49,7 @@ function createWindow() {
   // Em produção: arquivo local (dist/index.html)
   const startUrl = isDev
     ? "http://localhost:5173"
-    : `file://${path.join(__dirname, "../dist/index.html")}`;
+    : `file://${path.join(__dirname, "../dist/public/index.html")}`;
 
   // Carrega a URL na janela
   mainWindow.loadURL(startUrl);

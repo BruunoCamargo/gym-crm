@@ -20,6 +20,9 @@ module.exports = {
   // Nome do produto exibido no instalador
   productName: "Gym CRM",
 
+  // Arquivo principal do Electron (deve ser .js compilado)
+  main: "dist/electron/main.js",
+
   // Diretórios de entrada e saída
   directories: {
     // Pasta onde o Electron Builder procura pelos arquivos compilados
@@ -32,8 +35,8 @@ module.exports = {
   files: [
     // Código compilado do frontend (React)
     "dist/public/**/*",
-    // Código do Electron (main.ts compilado)
-    "electron/**/*",
+    // Código do Electron compilado (JavaScript)
+    "dist/electron/**/*",
     // Node modules necessários
     "node_modules/**/*",
   ],
@@ -99,4 +102,6 @@ module.exports = {
 
   // Não criar arquivo de atualização automática
   generateUpdatesFilesForAllChannels: false,
+
+
 };

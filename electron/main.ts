@@ -39,29 +39,50 @@ function createWindow() {
       contextIsolation: true,
       // Permite comunicação segura via preload script
       preload: path.join(__dirname, "preload.js"),
+      // Sandbox para segurança
+      sandbox: true,
     },
     // Ícone do aplicativo (será criado depois)
-    icon: path.join(__dirname, "../assets/icon.png") || undefined,
+    icon: path.join(__dirname, "../assets/icon.png"),
   });
 
   // URL da aplicação
   // Em desenvolvimento: localhost:5173 (servidor Vite)
-  // Em produção: arquivo local (dist/index.html)
+  // Em produção: arquivo local (dist/public/index.html)
   const startUrl = isDev
     ? "http://localhost:5173"
-    : `file://${path.join(__dirname, "../dist/public/index.html")}`;
+    : `file://${path.join(__dirname, "../public/index.html")}`;
 
   // Carrega a URL na janela
-  mainWindow.loadURL(startUrl);
+  try {
+    mainWindow.loadURL(startUrl);
+  } catch (error) {
+    console.error("[Electron] Erro ao carregar URL:", error);
+  }
 
-  // Abre DevTools em desenvolvimento (comentar em produção)
+  // Abre DevTools em desenvolvimento para debug
   if (isDev) {
     mainWindow.webContents.openDevTools();
   }
 
+  // Log de debug
+  console.log("[Electron] Carregando URL:", startUrl);
+  console.log("[Electron] isDev:", isDev);
+  console.log("[Electron] __dirname:", __dirname);
+
   // Evento: quando a janela é fechada
   mainWindow.on("closed", () => {
     mainWindow = null;
+  });
+
+  // Evento: quando há erro de carregamento
+  mainWindow.webContents.on("did-fail-load", (event, errorCode, errorDescription) => {
+    console.error("[Electron] Erro ao carregar página:", errorCode, errorDescription);
+  });
+
+  // Evento: quando a página carrega com sucesso
+  mainWindow.webContents.on("did-finish-load", () => {
+    console.log("[Electron] Página carregada com sucesso!");
   });
 }
 
@@ -69,7 +90,10 @@ function createWindow() {
  * Evento: quando o Electron terminou de inicializar.
  * Cria a janela principal neste momento.
  */
-app.on("ready", createWindow);
+app.on("ready", () => {
+  console.log("[Electron] App pronto, criando janela...");
+  createWindow();
+});
 
 /**
  * Evento: quando todas as janelas são fechadas.
@@ -77,6 +101,7 @@ app.on("ready", createWindow);
  * fechar explicitamente com Cmd+Q. No Windows, fechamos o app.
  */
 app.on("window-all-closed", () => {
+  console.log("[Electron] Todas as janelas fechadas");
   // No macOS, manter o app ativo
   if (process.platform !== "darwin") {
     app.quit();
@@ -98,6 +123,7 @@ app.on("activate", () => {
  * Define os menus do topo (Arquivo, Editar, etc.)
  */
 function createMenu() {
+  console.log("[Electron] Configurando menu da aplicação");
   const template: any[] = [
     {
       label: "Arquivo",
@@ -137,10 +163,14 @@ function createMenu() {
 
   const menu = Menu.buildFromTemplate(template);
   Menu.setApplicationMenu(menu);
+  console.log("[Electron] Menu criado com sucesso");
 }
 
 // Cria o menu quando o app está pronto
-app.on("ready", createMenu);
+app.on("ready", () => {
+  console.log("[Electron] Criando menu...");
+  createMenu();
+});
 
 /**
  * Handlers IPC (Inter-Process Communication).

@@ -47,11 +47,11 @@ function createWindow() {
   });
 
   // URL da aplicação
-  // Em desenvolvimento: localhost:5173 (servidor Vite)
-  // Em produção: arquivo local (dist/public/index.html)
+  // Em desenvolvimento: localhost:5173 (servidor Vite local)
+  // Em produção: URL do servidor Manus (online)
   const startUrl = isDev
     ? "http://localhost:5173"
-    : `file://${path.join(__dirname, "../public/index.html")}`;
+    : "https://gymcrm-nbedknkp.manus.space"; // URL da aplicação em produção
 
   // Carrega a URL na janela
   try {
@@ -63,6 +63,9 @@ function createWindow() {
   // Abre DevTools em desenvolvimento para debug
   if (isDev) {
     mainWindow.webContents.openDevTools();
+  } else {
+    // Em produção, desabilita DevTools por segurança
+    mainWindow.webContents.closeDevTools();
   }
 
   // Log de debug

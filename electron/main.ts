@@ -14,8 +14,9 @@
  * =============================================================
  */
 
-import { app, BrowserWindow, Menu, ipcMain } from "electron";
+import { app, Menu, BrowserWindow } from "electron";
 import path from "path";
+import fs from "fs";
 import isDev from "electron-is-dev";
 
 // Referência global da janela principal
@@ -48,16 +49,39 @@ function createWindow() {
 
   // URL da aplicação
   // Em desenvolvimento: localhost:5173 (servidor Vite local)
-  // Em produção: URL do servidor Manus (online)
-  const startUrl = isDev
-    ? "http://localhost:5173"
-    : "https://gymcrm-nbedknkp.manus.space"; // URL da aplicação em produção
+  // Em produção: tenta carregar arquivo local com fallbacks
+  if (isDev) {
+    // Desenvolvimento: conecta ao servidor Vite local
+    mainWindow.loadURL("http://localhost:5173");
+    console.log("[Electron] Modo desenvolvimento - carregando http://localhost:5173");
+  } else {
+    // Produção: tenta carregar arquivo HTML local com múltiplos caminhos
+    const possiblePaths = [
+      path.join(__dirname, "../public/index.html"),      // dist/public/index.html
+      path.join(__dirname, "../index.html"),             // dist/index.html
+      path.join(__dirname, "../../public/index.html"),    // public/index.html (raiz)
+      path.join(__dirname, "../../index.html"),           // index.html (raiz)
+    ];
 
-  // Carrega a URL na janela
-  try {
-    mainWindow.loadURL(startUrl);
-  } catch (error) {
-    console.error("[Electron] Erro ao carregar URL:", error);
+    let loaded = false;
+    for (const filePath of possiblePaths) {
+      try {
+        if (fs.existsSync(filePath)) {
+          console.log("[Electron] Arquivo encontrado:", filePath);
+          mainWindow.loadFile(filePath);
+          loaded = true;
+          break;
+        }
+      } catch (error) {
+        console.error("[Electron] Erro ao verificar", filePath, ":", error);
+      }
+    }
+
+    // Se nenhum arquivo foi encontrado, tenta a URL online como fallback
+    if (!loaded) {
+      console.warn("[Electron] Arquivo HTML não encontrado, tentando URL online...");
+      mainWindow.loadURL("https://gymcrm-nbedknkp.manus.space");
+    }
   }
 
   // Abre DevTools em desenvolvimento para debug
@@ -69,9 +93,18 @@ function createWindow() {
   }
 
   // Log de debug
-  console.log("[Electron] Carregando URL:", startUrl);
   console.log("[Electron] isDev:", isDev);
   console.log("[Electron] __dirname:", __dirname);
+  console.log("[Electron] Caminhos tentados:");
+  if (!isDev) {
+    const possiblePaths = [
+      path.join(__dirname, "../public/index.html"),
+      path.join(__dirname, "../index.html"),
+      path.join(__dirname, "../../public/index.html"),
+      path.join(__dirname, "../../index.html"),
+    ];
+    possiblePaths.forEach(p => console.log("  -", p, fs.existsSync(p) ? "[EXISTS]" : "[NÃO EXISTE]"));
+  }
 
   // Evento: quando a janela é fechada
   mainWindow.on("closed", () => {
@@ -81,6 +114,11 @@ function createWindow() {
   // Evento: quando há erro de carregamento
   mainWindow.webContents.on("did-fail-load", (event, errorCode, errorDescription) => {
     console.error("[Electron] Erro ao carregar página:", errorCode, errorDescription);
+    // Tenta fallback para URL online
+    if (!isDev) {
+      console.log("[Electron] Tentando fallback para URL online...");
+      mainWindow.loadURL("https://gymcrm-nbedknkp.manus.space");
+    }
   });
 
   // Evento: quando a página carrega com sucesso

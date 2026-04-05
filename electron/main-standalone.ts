@@ -12,7 +12,7 @@
  * =============================================================
  */
 
-import { app, Menu, BrowserWindow, ipcMain, dialog } from "electron";
+import { app, Menu, BrowserWindow, ipcMain, dialog, IpcMainInvokeEvent } from "electron";
 import path from "path";
 import fs from "fs";
 import isDev from "electron-is-dev";
@@ -284,7 +284,7 @@ function createMenu() {
  * IPC Handlers
  */
 
-ipcMain.handle("app:getInfo", async () => {
+ipcMain.handle("app:getInfo", async (_event: IpcMainInvokeEvent) => {
   return {
     name: app.getName(),
     version: app.getVersion(),
@@ -294,11 +294,11 @@ ipcMain.handle("app:getInfo", async () => {
   };
 });
 
-ipcMain.handle("window:minimize", async () => {
+ipcMain.handle("window:minimize", async (_event: IpcMainInvokeEvent) => {
   if (mainWindow) mainWindow.minimize();
 });
 
-ipcMain.handle("window:toggleMaximize", async () => {
+ipcMain.handle("window:toggleMaximize", async (_event: IpcMainInvokeEvent) => {
   if (mainWindow) {
     if (mainWindow.isMaximized()) {
       mainWindow.unmaximize();
@@ -308,7 +308,7 @@ ipcMain.handle("window:toggleMaximize", async () => {
   }
 });
 
-ipcMain.handle("window:close", async () => {
+ipcMain.handle("window:close", async (_event: IpcMainInvokeEvent) => {
   if (mainWindow) mainWindow.close();
 });
 
@@ -316,7 +316,7 @@ ipcMain.handle("window:close", async () => {
  * Database IPC Handlers
  */
 
-ipcMain.handle("db:query", async (event, sql: string, params: any[] = []) => {
+ipcMain.handle("db:query", async (_event: IpcMainInvokeEvent, sql: string, params: any[] = []) => {
   try {
     if (!db) throw new Error("Database not initialized");
     const stmt = db.prepare(sql);
@@ -327,7 +327,7 @@ ipcMain.handle("db:query", async (event, sql: string, params: any[] = []) => {
   }
 });
 
-ipcMain.handle("db:run", async (event, sql: string, params: any[] = []) => {
+ipcMain.handle("db:run", async (_event: IpcMainInvokeEvent, sql: string, params: any[] = []) => {
   try {
     if (!db) throw new Error("Database not initialized");
     const stmt = db.prepare(sql);
@@ -339,7 +339,7 @@ ipcMain.handle("db:run", async (event, sql: string, params: any[] = []) => {
   }
 });
 
-ipcMain.handle("db:exec", async (event, sql: string) => {
+ipcMain.handle("db:exec", async (_event: IpcMainInvokeEvent, sql: string) => {
   try {
     if (!db) throw new Error("Database not initialized");
     db.exec(sql);

@@ -156,10 +156,10 @@ function LoginScreen() {
         <div className="bg-card border border-border rounded-2xl p-8 shadow-2xl">
           {/* Logo e título */}
           <div className="flex flex-col items-center gap-6 mb-8">
-            {/* Logo da academia — imagem gerada por IA */}
+            {/* Logo da academia — Graphics Vision */}
             <img
-              src="https://d2xsxph8kpxj0f.cloudfront.net/310519663512937086/NbedKNkptWhgXcAge2qCTA/gym-crm-logo-ZszfavYK75QNGqBnDYi5fv.webp"
-              alt="Gym CRM Logo"
+              src="/graphics-vision-logo.png"
+              alt="Graphics Vision Logo"
               className="w-20 h-20 rounded-2xl object-cover border border-primary/20 shadow-lg shadow-primary/10"
             />
 
@@ -202,6 +202,13 @@ function LoginScreen() {
             Acesso exclusivo para administradores autorizados
           </p>
         </div>
+      </div>
+
+      {/* Rodapé com copyright */}
+      <div className="absolute bottom-4 text-center w-full">
+        <p className="text-xs text-muted-foreground">
+          Gym CRM © 2026 — Todos os direitos reservados ao criador Graphics Vision
+        </p>
       </div>
     </div>
   );
@@ -309,10 +316,10 @@ function DashboardLayoutContent({
               {/* Logo e nome — visível apenas quando expandida */}
               {!isCollapsed && (
                 <div className="flex items-center gap-2 min-w-0">
-                  {/* Logo da academia — imagem gerada por IA */}
+                  {/* Logo da academia — Graphics Vision */}
                   <img
-                    src="https://d2xsxph8kpxj0f.cloudfront.net/310519663512937086/NbedKNkptWhgXcAge2qCTA/gym-crm-logo-ZszfavYK75QNGqBnDYi5fv.webp"
-                    alt="Gym CRM Logo"
+                    src="/graphics-vision-logo.png"
+                    alt="Graphics Vision Logo"
                     className="w-7 h-7 rounded-lg object-cover shrink-0"
                   />
                   <div className="min-w-0">

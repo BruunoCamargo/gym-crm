@@ -9,193 +9,163 @@
  * Este arquivo gerencia:
  * - Criação da janela do aplicativo
  * - Ciclo de vida do app (inicialização, fechamento)
- * - Comunicação entre processos (IPC)
  * - Menu e atalhos do sistema
  * =============================================================
  */
 
 import { app, Menu, BrowserWindow } from "electron";
 import path from "path";
-import fs from "fs";
 import isDev from "electron-is-dev";
 
 // Referência global da janela principal
 let mainWindow: BrowserWindow | null = null;
 
 /**
- * Cria a janela principal do aplicativo.
- * Define tamanho, ícone, e carrega a URL da aplicação.
+ * FUNÇÃO: createWindow()
+ * DESCRIÇÃO: Cria a janela principal do aplicativo Electron.
+ *
+ * Esta função:
+ * 1. Cria uma nova janela com dimensões 1200x800
+ * 2. Carrega a URL da aplicação (online ou local)
+ * 3. Configura eventos de ciclo de vida
+ * 4. Abre o DevTools em desenvolvimento
  */
 function createWindow() {
-  // Cria uma nova janela do navegador
+  // Cria a janela principal do Electron
+  // Parâmetros:
+  // - width: 1200 (largura em pixels)
+  // - height: 800 (altura em pixels)
+  // - webPreferences: configurações de segurança e funcionalidades
   mainWindow = new BrowserWindow({
-    width: 1400, // Largura inicial em pixels
-    height: 900, // Altura inicial em pixels
-    minWidth: 800, // Largura mínima permitida
-    minHeight: 600, // Altura mínima permitida
-    webPreferences: {
-      // Segurança: desabilita node integration
-      nodeIntegration: false,
-      // Segurança: ativa context isolation
-      contextIsolation: true,
-      // Permite comunicação segura via preload script
-      preload: path.join(__dirname, "preload.js"),
-      // Sandbox para segurança
-      sandbox: true,
-    },
-    // Ícone do aplicativo (será criado depois)
+    width: 1200,
+    height: 800,
     icon: path.join(__dirname, "../assets/icon.png"),
+    webPreferences: {
+      // preload: caminho para arquivo que roda antes do app carregar
+      // Comentado porque estamos usando apenas servidor online
+      // preload: path.join(__dirname, "preload.js"),
+
+      // nodeIntegration: false (segurança - não permite acesso a Node.js no renderer)
+      nodeIntegration: false,
+
+      // contextIsolation: true (segurança - isola contexto do Node)
+      contextIsolation: true,
+
+      // enableRemoteModule: false (segurança - desabilita remote module)
+      enableRemoteModule: false,
+    },
   });
 
-  // URL da aplicação
-  // Em desenvolvimento: localhost:5173 (servidor Vite local)
-  // Em produção: tenta carregar arquivo local com fallbacks
+  // ===== CARREGAMENTO DA APLICAÇÃO =====
+  // Estratégia: SEMPRE conectar ao servidor online
+  // Razão: Mais seguro, mais confiável, sem problemas de permissões de arquivo
+
   if (isDev) {
-    // Desenvolvimento: conecta ao servidor Vite local
+    // DESENVOLVIMENTO: Conecta ao servidor Vite local (localhost:5173)
     console.log("[Electron] ⚙️  Modo DESENVOLVIMENTO");
+    console.log("[Electron] Carregando: http://localhost:5173");
     mainWindow.loadURL("http://localhost:5173");
   } else {
-    // Produção: tenta carregar arquivo HTML local com múltiplos caminhos
+    // PRODUÇÃO: Conecta ao servidor online (Manus)
     console.log("[Electron] 🏭 Modo PRODUÇÃO");
-    const possiblePaths = [
-      path.join(__dirname, "../public/index.html"),      // dist/public/index.html
-      path.join(__dirname, "../index.html"),             // dist/index.html
-      path.join(__dirname, "../../public/index.html"),    // public/index.html (raiz)
-      path.join(__dirname, "../../index.html"),           // index.html (raiz)
-    ];
-
-    let loaded = false;
-    for (const filePath of possiblePaths) {
-      try {
-        if (fs.existsSync(filePath)) {
-          console.log("[Electron] ✅ Arquivo encontrado:", filePath);
-          mainWindow.loadFile(filePath);
-          loaded = true;
-          break;
-        } else {
-          console.log("[Electron] ❌ Não encontrado:", filePath);
-        }
-      } catch (error) {
-        console.error("[Electron] Erro ao verificar", filePath, ":", error);
-      }
-    }
-
-    // Se nenhum arquivo foi encontrado, tenta a URL online como fallback
-    if (!loaded) {
-      console.warn("[Electron] ⚠️  Arquivo HTML não encontrado, tentando URL online...");
-      mainWindow.loadURL("https://gymcrm-nbedknkp.manus.space");
-    }
+    console.log("[Electron] Carregando: https://gymcrm-nbedknkp.manus.space");
+    mainWindow.loadURL("https://gymcrm-nbedknkp.manus.space");
   }
 
-  // Abre DevTools para debug (sempre, temporariamente)
-  mainWindow.webContents.openDevTools();
-  console.log("[Electron] DevTools aberto para debug");
-
-  // Log de debug
-  console.log("\n========================================");
-  console.log("[Electron] DEBUG INFO");
-  console.log("========================================");
-  console.log("isDev:", isDev);
-  console.log("__dirname:", __dirname);
-  console.log("process.cwd():", process.cwd());
-  console.log("process.env.NODE_ENV:", process.env.NODE_ENV);
-  console.log("\nCaminhos tentados:");
-  if (!isDev) {
-    const possiblePaths = [
-      path.join(__dirname, "../public/index.html"),
-      path.join(__dirname, "../index.html"),
-      path.join(__dirname, "../../public/index.html"),
-      path.join(__dirname, "../../index.html"),
-    ];
-    possiblePaths.forEach(p => {
-      const exists = fs.existsSync(p);
-      console.log("  -", p, exists ? "[EXISTS]" : "[NÃO EXISTE]");
-    });
+  // ===== DEVTOOLS =====
+  // Em desenvolvimento: abre o DevTools automaticamente para debug
+  if (isDev) {
+    mainWindow.webContents.openDevTools();
+    console.log("[Electron] DevTools aberto (desenvolvimento)");
   }
-  console.log("========================================\n");
+
+  // ===== EVENTOS DA JANELA =====
 
   // Evento: quando a janela é fechada
   mainWindow.on("closed", () => {
+    console.log("[Electron] Janela fechada");
     mainWindow = null;
   });
 
   // Evento: quando há erro de carregamento
   mainWindow.webContents.on("did-fail-load", (event, errorCode, errorDescription) => {
-    console.error("[Electron] ERRO ao carregar página:", errorCode, errorDescription);
-    console.error("[Electron] Detalhes do erro:", event);
-    // Tenta fallback para URL online
-    if (!isDev) {
-      console.log("[Electron] Tentando fallback para URL online...");
-      mainWindow.loadURL("https://gymcrm-nbedknkp.manus.space");
-    }
-  });
-
-  // Evento: erros de console no renderer
-  mainWindow.webContents.on("console-message", (level, message, line, sourceId) => {
-    console.log(`[Renderer] [${level}] ${message} (${sourceId}:${line})`);
-  });
-
-  // Evento: crashes
-  mainWindow.webContents.on("crashed", () => {
-    console.error("[Electron] RENDERER PROCESS CRASHED!");
+    console.error("[Electron] ❌ Erro ao carregar página:");
+    console.error("  Código:", errorCode);
+    console.error("  Descrição:", errorDescription);
   });
 
   // Evento: quando a página carrega com sucesso
   mainWindow.webContents.on("did-finish-load", () => {
     console.log("[Electron] ✅ Página carregada com sucesso!");
-    console.log("[Electron] URL atual:", mainWindow?.webContents.getURL());
+    if (mainWindow) {
+      console.log("[Electron] URL atual:", mainWindow.webContents.getURL());
+    }
   });
 
-  // Evento: antes de carregar
+  // Evento: erros de console no renderer
+  mainWindow.webContents.on("console-message", (level, message, line, sourceId) => {
+    console.log(`[Renderer] [${level}] ${message}`);
+  });
+
+  // Evento: antes de navegar
   mainWindow.webContents.on("will-navigate", (event, url) => {
     console.log("[Electron] Navegando para:", url);
   });
 }
 
 /**
- * Evento: quando o Electron terminou de inicializar.
- * Cria a janela principal neste momento.
+ * EVENTO: app.on('ready')
+ * DESCRIÇÃO: Dispara quando o Electron terminou de inicializar.
+ *
+ * Aqui criamos a janela principal e configuramos o menu.
  */
 app.on("ready", () => {
-  console.log("[Electron] App pronto, criando janela...");
+  console.log("[Electron] Aplicação iniciada");
   createWindow();
+  createMenu();
 });
 
 /**
- * Evento: quando todas as janelas são fechadas.
- * Em macOS, aplicativos geralmente permanecem ativos até o usuário
- * fechar explicitamente com Cmd+Q. No Windows, fechamos o app.
+ * EVENTO: app.on('window-all-closed')
+ * DESCRIÇÃO: Dispara quando todas as janelas são fechadas.
+ *
+ * Em macOS: aplicação continua rodando
+ * Em Windows/Linux: aplicação fecha
  */
 app.on("window-all-closed", () => {
   console.log("[Electron] Todas as janelas fechadas");
-  // No macOS, manter o app ativo
+  // Em macOS, aplicações geralmente continuam ativas até o usuário sair explicitamente
   if (process.platform !== "darwin") {
     app.quit();
   }
 });
 
 /**
- * Evento: quando o app é ativado novamente (macOS).
- * Se não há janelas abertas, cria uma nova.
+ * EVENTO: app.on('activate')
+ * DESCRIÇÃO: Dispara quando o usuário clica no ícone do app (macOS).
+ *
+ * Recriar a janela se ela foi fechada.
  */
 app.on("activate", () => {
+  console.log("[Electron] Aplicação ativada");
   if (mainWindow === null) {
     createWindow();
   }
 });
 
 /**
- * Menu da aplicação.
- * Define os menus do topo (Arquivo, Editar, etc.)
+ * FUNÇÃO: createMenu()
+ * DESCRIÇÃO: Cria o menu do aplicativo (File, Edit, etc).
+ *
+ * Define as opções disponíveis no menu da aplicação.
  */
 function createMenu() {
-  console.log("[Electron] Configurando menu da aplicação");
-  const template: any[] = [
+  const template = [
     {
-      label: "Arquivo",
+      label: "File",
       submenu: [
         {
-          label: "Sair",
+          label: "Exit",
           accelerator: "CmdOrCtrl+Q",
           click: () => {
             app.quit();
@@ -204,88 +174,26 @@ function createMenu() {
       ],
     },
     {
-      label: "Editar",
+      label: "Edit",
       submenu: [
-        { label: "Desfazer", accelerator: "CmdOrCtrl+Z", role: "undo" },
-        { label: "Refazer", accelerator: "CmdOrCtrl+Y", role: "redo" },
+        { role: "undo" },
+        { role: "redo" },
         { type: "separator" },
-        { label: "Cortar", accelerator: "CmdOrCtrl+X", role: "cut" },
-        { label: "Copiar", accelerator: "CmdOrCtrl+C", role: "copy" },
-        { label: "Colar", accelerator: "CmdOrCtrl+V", role: "paste" },
+        { role: "cut" },
+        { role: "copy" },
+        { role: "paste" },
       ],
     },
     {
-      label: "Exibir",
+      label: "View",
       submenu: [
-        { label: "Recarregar", accelerator: "CmdOrCtrl+R", role: "reload" },
-        {
-          label: "Ferramentas do Desenvolvedor",
-          accelerator: "CmdOrCtrl+Shift+I",
-          role: "toggleDevTools",
-        },
+        { role: "reload" },
+        { role: "forceReload" },
+        { role: "toggleDevTools" },
       ],
     },
   ];
 
   const menu = Menu.buildFromTemplate(template);
   Menu.setApplicationMenu(menu);
-  console.log("[Electron] Menu criado com sucesso");
 }
-
-// Cria o menu quando o app está pronto
-app.on("ready", () => {
-  console.log("[Electron] Criando menu...");
-  createMenu();
-});
-
-/**
- * Handlers IPC (Inter-Process Communication).
- * Permite que o frontend (React) comunique com o backend (Electron).
- */
-
-/**
- * IPC: obter informações do aplicativo.
- * Usado para exibir versão, nome, etc. no frontend.
- */
-ipcMain.handle("app:getInfo", async () => {
-  return {
-    name: app.getName(),
-    version: app.getVersion(),
-    platform: process.platform,
-    isDev: isDev,
-  };
-});
-
-/**
- * IPC: minimizar a janela.
- * Chamado quando o usuário clica no botão minimizar.
- */
-ipcMain.handle("window:minimize", async () => {
-  if (mainWindow) {
-    mainWindow.minimize();
-  }
-});
-
-/**
- * IPC: maximizar/restaurar a janela.
- * Alterna entre maximizado e tamanho normal.
- */
-ipcMain.handle("window:toggleMaximize", async () => {
-  if (mainWindow) {
-    if (mainWindow.isMaximized()) {
-      mainWindow.unmaximize();
-    } else {
-      mainWindow.maximize();
-    }
-  }
-});
-
-/**
- * IPC: fechar a janela.
- * Chamado quando o usuário clica no botão fechar.
- */
-ipcMain.handle("window:close", async () => {
-  if (mainWindow) {
-    mainWindow.close();
-  }
-});
